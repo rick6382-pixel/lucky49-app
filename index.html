@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102b46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="49幸運選號">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>49幸運選號機</title>
+<style>
+:root{color-scheme:light;--navy:#102b46;--blue:#2465a5;--pale:#eaf2fa;--line:#d9e2ec;--ink:#182638;--muted:#66788a;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:620px;margin:auto}.hero{background:linear-gradient(135deg,#102b46,#2465a5);color:white;padding:24px 20px;border-radius:0 0 22px 22px;margin:0 -16px 20px}.hero h1{font-size:25px;margin:0 0 6px}.hero p{margin:0;color:#dbe9f7;font-size:14px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 3px 12px #18324d08}
+h2{font-size:17px;margin:0 0 6px}.sub{font-size:13px;color:var(--muted);margin:0 0 13px}
+#balls{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.ball{aspect-ratio:1;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--navy);font-weight:700;font-size:14px}
+.ball.selected{background:var(--blue);color:white;border-color:var(--blue)}
+.slots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.slot{background:var(--pale);border:1px solid #d7e5f4;border-radius:9px;text-align:center;padding:11px 0;font-weight:750;color:var(--navy);min-width:0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button.action{border:0;border-radius:10px;background:var(--navy);color:white;font-weight:700;padding:12px 15px;font-size:14px}
+button.light{background:#edf3f8;color:var(--navy);border:1px solid var(--line)}
+button:active{opacity:.75}
+.rows{display:grid;gap:10px}.manual-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.manual-row input{width:100%;min-width:0;text-align:center;padding:10px 1px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:15px}
+.row-label{font-size:12px;color:var(--muted);margin-bottom:5px}
+.results{display:grid;gap:10px}.result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px}.result-title{font-size:14px;font-weight:700;margin-bottom:9px}.result .slot{background:white}
+.stat{font-weight:750;font-size:21px;color:var(--navy)}.note{font-size:12px;line-height:1.65;color:var(--muted)}
+#message{min-height:20px;font-size:13px;color:var(--muted);margin:10px 2px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+</style>
+</head>
+<body>
+<main>
+<header class="hero"><h1>49 幸運選號機</h1><p>選擇號碼・輸入自訂組合・隨機推薦三組</p></header>
+<section class="card">
+<h2>第一區｜49 個選號按鈕</h2><p class="sub">從 01～49 選擇最多 7 個號碼</p>
+<div id="balls"></div><div class="actions"><button class="action light" id="clearPick">清除選號</button><button class="action light" id="randomPick">隨機選 7 號</button></div>
+</section>
+<section class="card">
+<h2>第二區｜我的 7 個號碼</h2><p class="sub" id="count">已選 0 / 7</p><div class="slots" id="selected"></div>
+</section>
+<section class="card">
+<h2>第三區｜自行輸入 10 組號碼</h2><p class="sub">每組 7 格，只能輸入 01～49；同一組不可重複。</p><div class="rows" id="manualRows"></div>
+</section>
+<section class="card">
+<h2>第四區｜隨機產生 3 組號碼</h2><p class="sub">以第一區及第三區的不同號碼作為候選池；候選不足 7 個時，使用完整 01～49 號碼池。</p>
+<button class="action" style="width:100%" id="generate">產生三組 7 個號碼</button>
+<div class="results" id="results" style="margin-top:12px"><p class="sub">按下按鈕即可產生推薦組合。</p></div>
+<div class="actions"><button class="action light" id="clearResults">清除推薦結果</button></div>
+</section>
+<section class="card">
+<h2>機率計算</h2><p class="sub">49 選 7 的全部可能組合</p><div class="stat">85,900,584 種</div>
+<p style="margin:12px 0 4px;font-size:14px">實際單組完全命中 7 個號碼的機率</p><div class="stat">1 / 85,900,584</div>
+<p class="note" style="margin-top:12px">你的自訂參考值：1 / 5,000,000。這是顯示用的參考條件，不會改變實際中獎機率。每一組隨機組合的中獎機率相同，推薦不保證中獎。</p>
+</section>
+<div id="message" role="status" aria-live="polite">資料只保留在本次開啟期間；重新開啟會清空。</div>
+<footer>免費個人使用版・不需登入・不會保存你的選號資料</footer>
+</main>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id);let picked=[];
+ const pad=n=>String(n).padStart(2,'0');
+ function say(s){$('message').textContent=s}
+ function render(){
+  $('balls').innerHTML='';
+  for(let n=1;n<=49;n++){let b=document.createElement('button');b.className='ball'+(picked.includes(n)?' selected':'');b.textContent=pad(n);b.setAttribute('aria-pressed',picked.includes(n));b.addEventListener('click',()=>{if(picked.includes(n))picked=picked.filter(x=>x!==n);else if(picked.length<7)picked.push(n);else say('最多只能選擇 7 個號碼。');render()});$('balls').append(b)}
+  $('count').textContent=`已選 ${picked.length} / 7`;$('selected').innerHTML='';
+  for(let i=0;i<7;i++){let d=document.createElement('div');d.className='slot';d.textContent=picked[i]?pad(picked[i]):'－';$('selected').append(d)}
+ }
+ for(let r=0;r<10;r++){let wrap=document.createElement('div'),lab=document.createElement('div'),row=document.createElement('div');lab.className='row-label';lab.textContent=`第 ${r+1} 組`;row.className='manual-row';
+  for(let c=0;c<7;c++){let x=document.createElement('input');x.type='number';x.min='1';x.max='49';x.step='1';x.inputMode='numeric';x.placeholder=pad(c+1);x.setAttribute('aria-label',`第${r+1}組第${c+1}個號碼`);x.addEventListener('input',()=>{if(x.value.length>2)x.value=x.value.slice(0,2)});row.append(x)}
+  wrap.append(lab,row);$('manualRows').append(wrap)}
+ function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+ $('clearPick').onclick=()=>{picked=[];render();say('已清除第一區選號。')};
+ $('randomPick').onclick=()=>{picked=shuffle(Array.from({length:49},(_,i)=>i+1)).slice(0,7).sort((a,b)=>a-b);render();say('已隨機選出 7 個號碼。')};
+ $('clearResults').onclick=()=>{$('results').innerHTML='<p class="sub">按下按鈕即可產生推薦組合。</p>';say('已清除推薦結果。')};
+ $('generate').onclick=()=>{
+  let pool=[...picked],inputs=[...$('manualRows').querySelectorAll('.manual-row')];
+  for(let i=0;i<inputs.length;i++){let vals=[...inputs[i].querySelectorAll('input')].map(x=>x.value.trim()).filter(Boolean).map(Number);
+   if(vals.some(x=>!Number.isInteger(x)||x<1||x>49)){say(`第 ${i+1} 組有無效號碼，請輸入 01～49。`);return}
+   if(new Set(vals).size!==vals.length){say(`第 ${i+1} 組有重複號碼，請修正。`);return}pool.push(...vals)}
+  pool=[...new Set(pool)];let fallback=pool.length<7;if(fallback)pool=Array.from({length:49},(_,i)=>i+1);
+  let combos=[];while(combos.length<3){let combo=shuffle([...pool]).slice(0,7).sort((a,b)=>a-b);if(!combos.some(x=>x.join()==combo.join()))combos.push(combo)}
+  $('results').innerHTML='';combos.forEach((arr,i)=>{let box=document.createElement('div');box.className='result';let title=document.createElement('div');title.className='result-title';title.textContent=`推薦第 ${i+1} 組`;let nums=document.createElement('div');nums.className='slots';arr.forEach(n=>{let d=document.createElement('div');d.className='slot';d.textContent=pad(n);nums.append(d)});box.append(title,nums);$('results').append(box)});
+  say(fallback?'候選號碼不足 7 個，已使用完整 49 號碼池。':'已依照第一區及第三區的號碼產生三組結果。');
+ };
+ render();
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
+</body></html>
