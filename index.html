@@ -11,76 +11,360 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>49 幸運選號機</title>
 <style>
-:root{color-scheme:light;--navy:#102b46;--blue:#2465a5;--pale:#eaf2fa;--line:#d9e2ec;--ink:#182638;--muted:#66788a;--bg:#f4f7fb;--gold:#b7791f}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
-main{max-width:620px;margin:auto}.hero{background:linear-gradient(135deg,#102b46,#2465a5);color:white;padding:24px 20px;border-radius:0 0 22px 22px;margin:0 -16px 20px}.hero h1{font-size:25px;margin:0 0 6px}.hero p{margin:0;color:#dbe9f7;font-size:14px}
-.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 3px 12px #18324d08}h2{font-size:17px;margin:0 0 6px}.sub{font-size:13px;color:var(--muted);margin:0 0 13px}
-#balls{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.ball{aspect-ratio:1;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--navy);font-weight:700;font-size:14px}.ball.selected{background:var(--blue);color:white;border-color:var(--blue)}
-.slots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.slot{background:var(--pale);border:1px solid #d7e5f4;border-radius:9px;text-align:center;padding:11px 0;font-weight:750;color:var(--navy);min-width:0;font-variant-numeric:tabular-nums}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button.action{border:0;border-radius:10px;background:var(--navy);color:white;font-weight:700;padding:12px 15px;font-size:14px}button.light{background:#edf3f8;color:var(--navy);border:1px solid var(--line)}button:active{opacity:.75}
-.draw-list{display:grid;gap:10px}.draw-row{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fbfdff}.draw-head{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--muted)}.draw-period{font-weight:750;color:var(--navy)}.draw-numbers{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.draw-ball{border-radius:50%;aspect-ratio:1;display:grid;place-items:center;background:#eaf2fa;color:#17436b;font-size:13px;font-weight:750}.draw-ball.special{background:#fff0d5;color:#8a5200;border:1px solid #edc77d}.legend{font-size:11px;color:var(--muted);margin-top:7px}.status{font-size:12px;color:var(--muted);line-height:1.6}.status.error{color:#b42318}.results{display:grid;gap:10px}.result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px}.result-title{font-size:14px;font-weight:700;margin-bottom:9px}.result .slot{background:#eaf2fa;color:#17436b}.result .slot.special{background:#fff0d5;color:#8a5200;border-color:#edc77d}.result .slot.rolling{animation:ballRoll .18s linear infinite;box-shadow:0 0 0 3px #2465a533}.result .slot.landed{animation:ballLand .32s ease-out both}@keyframes ballRoll{0%{transform:translateY(-3px) rotate(-8deg);filter:blur(.5px)}50%{transform:translateY(2px) rotate(8deg);filter:blur(0)}100%{transform:translateY(-3px) rotate(-8deg)}}@keyframes ballLand{0%{transform:scale(1.22)}70%{transform:scale(.94)}100%{transform:scale(1)}}@media(prefers-reduced-motion:reduce){.result .slot.rolling,.result .slot.landed{animation:none}}.stat{font-weight:750;font-size:21px;color:var(--navy)}.note{font-size:12px;line-height:1.65;color:var(--muted)}#message{min-height:20px;font-size:13px;color:var(--muted);margin:10px 2px}footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+:root{color-scheme:light;--navy:#102b46;--blue:#2465a5;--pale:#eaf2fa;--line:#d9e2ec;--ink:#182638;--muted:#66788a;--bg:#f4f7fb;--red:#ed5148;--gold:#e5a52d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:680px;margin:auto}
+.hero{background:linear-gradient(135deg,#102b46,#2465a5);color:white;padding:24px 20px;border-radius:0 0 22px 22px;margin:0 -16px 20px}
+.hero h1{font-size:25px;margin:0 0 6px}.hero p{margin:0;color:#dbe9f7;font-size:14px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 3px 12px #18324d08}
+h2{font-size:17px;margin:0 0 6px}.sub{font-size:13px;color:var(--muted);margin:0 0 13px}
+#balls{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.ball{aspect-ratio:1;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--navy);font-weight:700;font-size:14px}
+.ball.selected{background:var(--blue);color:white;border-color:var(--blue)}
+.slots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.slot{background:var(--pale);border:1px solid #d7e5f4;border-radius:9px;text-align:center;padding:11px 0;font-weight:750;color:var(--navy);min-width:0}
+.slot.special{background:#fff1d4;border-color:#e9bd65;color:#8a5700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button.action{border:0;border-radius:10px;background:var(--navy);color:white;font-weight:700;padding:12px 15px;font-size:14px}
+button.light{background:#edf3f8;color:var(--navy);border:1px solid var(--line)}
+button:active{opacity:.75}button:disabled{opacity:.55;cursor:wait}
+.rows{display:grid;gap:10px}.manual-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.manual-row input{width:100%;min-width:0;text-align:center;padding:10px 1px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:15px}
+.row-label{font-size:12px;color:var(--muted);margin-bottom:5px}
+.results{display:grid;gap:10px}.result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px}.result-title{font-size:14px;font-weight:700;margin-bottom:9px}.result .slot{background:white}.result .slot.special{background:#fff1d4}
+.stat{font-weight:750;font-size:21px;color:var(--navy)}.note{font-size:12px;line-height:1.65;color:var(--muted)}
+#message{min-height:20px;font-size:13px;color:var(--muted);margin:10px 2px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+.draw-history{display:grid;gap:9px}
+.history-row{background:#f7faff;border:1px solid var(--line);border-radius:11px;padding:10px}
+.history-meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.history-numbers{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.history-ball{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #d7e5f4;color:var(--navy);font-size:13px;font-weight:800}
+.history-ball.special{background:#fff1d4;border-color:#e9bd65;color:#8a5700}
+.history-empty{font-size:13px;color:var(--muted);padding:10px 0}
+
+/* Lottery machine illustration */
+.machine-wrap{display:flex;justify-content:center;overflow:hidden;padding:8px 0 0}
+.machine{position:relative;width:min(100%,360px);height:340px;isolation:isolate}
+.machine-orb{position:absolute;left:50%;top:62px;transform:translateX(-50%);width:260px;height:238px;border-radius:50%;border:8px solid rgba(190,207,222,.78);background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.62),rgba(199,219,234,.12) 35%,rgba(34,55,74,.16) 72%,rgba(255,255,255,.26));box-shadow:inset 0 0 24px #fff,0 0 0 4px rgba(255,255,255,.55),0 0 22px #20384a33;overflow:visible}
+.machine-orb:before{content:"";position:absolute;inset:10px;border-radius:50%;border:2px solid rgba(255,255,255,.68);pointer-events:none}
+.machine-orb:after{content:"";position:absolute;left:50%;top:-35px;transform:translateX(-50%);width:60px;height:70px;border:6px solid #aebdca;border-bottom:0;border-radius:22px 22px 0 0;background:linear-gradient(90deg,#dbe5ed88,#ffffff55,#8b9aa888);z-index:2}
+.machine-ring{position:absolute;left:50%;top:42px;transform:translateX(-50%);width:290px;height:280px;border-radius:50%;border:7px solid transparent;border-right-color:#ff7469;border-bottom-color:#ff554d;filter:drop-shadow(0 0 7px #ff625a);pointer-events:none;z-index:3}
+.machine-ring:after{content:"";position:absolute;inset:-8px;border-radius:50%;border:3px solid rgba(255,104,92,.25)}
+.machine-top{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:120px;height:58px;border:5px solid #aab9c7;border-bottom:0;border-radius:18px 18px 0 0;background:linear-gradient(90deg,#ffffff66,#b9c9d655,#ffffff66);z-index:2}
+.machine-neck{position:absolute;left:50%;top:38px;transform:translateX(-50%);height:75px;width:45px;border:5px solid #b5c5d2;border-bottom:0;background:#eaf2f755;z-index:2}
+.machine-base{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:310px;height:48px;border-radius:50%;background:linear-gradient(#fff,#cbd7e1);border:6px solid #ff665c;box-shadow:0 12px 0 #d9473f,0 18px 22px #102b4633}
+.machine-stand{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);height:54px;width:120px;background:linear-gradient(90deg,#f05b50,#ffb19a,#dc443c);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);z-index:-1}
+.inner-balls{position:absolute;left:25px;right:25px;bottom:32px;height:105px;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;align-items:center;justify-items:center;z-index:1}
+.mix-ball{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#3a5368;background:radial-gradient(circle at 30% 25%,#fff 0 18%,#e8edf1 48%,#aab8c5 100%);border:1px solid #a8b7c4;box-shadow:0 2px 3px #18263855;transition:opacity .2s}
+.mix-ball.gone{opacity:0;visibility:hidden}
+.machine.is-mixing .mix-ball{animation:tumble .42s ease-in-out infinite alternate}
+.machine.is-mixing .mix-ball:nth-child(3n){animation-delay:-.18s}
+.machine.is-mixing .mix-ball:nth-child(4n){animation-delay:-.31s}
+@keyframes tumble{from{transform:translate(-5px,-7px) rotate(-18deg)}to{transform:translate(6px,8px) rotate(22deg)}}
+.lift-track{position:absolute;left:50%;top:18px;transform:translateX(-50%);width:44px;height:175px;border-left:5px solid #d4e0e9aa;border-right:5px solid #91a5b688;border-radius:18px;background:linear-gradient(90deg,#fff5,#9eb2c233,#fff5);z-index:4}
+.draw-ball{position:absolute;left:calc(50% - 17px);top:64%;width:34px;height:34px;border-radius:50%;display:none;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#29445c;background:radial-gradient(circle at 30% 25%,#fff,#edf2f5 55%,#aebdca);border:2px solid #9cabb8;box-shadow:0 3px 9px #102b4677;z-index:8}
+.draw-ball.special{color:#784600;background:radial-gradient(circle at 30% 25%,#fff7dc,#f4c65f 58%,#bd7916);border-color:#c88b22;box-shadow:0 0 15px #f2bb49}
+.draw-ball.travel{display:flex;animation:ballRoute 1.05s cubic-bezier(.25,.75,.25,1) forwards}
+@keyframes ballRoute{
+  0%{transform:translate(0,0) scale(.65);opacity:0}
+  12%{transform:translate(0,0) scale(1);opacity:1}
+  48%{transform:translate(0,-155px) scale(1.08);opacity:1}
+  72%{transform:translate(105px,-125px) scale(1);opacity:1}
+  100%{transform:translate(124px,78px) scale(.8);opacity:0}
+}
+.machine.is-mixing .machine-ring{animation:ringPulse .55s ease-in-out infinite alternate}
+@keyframes ringPulse{to{filter:drop-shadow(0 0 16px #ff473e);opacity:.72}}
+.machine-status{text-align:center;font-size:12px;color:var(--muted);margin:3px 0 12px;min-height:18px}
+.draw-result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0 12px}
+.draw-result-title{font-size:13px;font-weight:750;margin-bottom:8px}
+.draw-result .slots{gap:5px}
+.draw-result .slot{padding:9px 0;font-size:14px}
+@media(max-width:380px){.machine{transform:scale(.92);transform-origin:top center;margin-bottom:-26px}#balls{gap:6px}.ball{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.machine.is-mixing .mix-ball,.machine.is-mixing .machine-ring{animation:none!important}.draw-ball.travel{animation-duration:.12s}}
+
+/* v7: enhanced glass-and-chrome lottery machine */
+.machine{filter:drop-shadow(0 18px 18px #102b4620)}
+.machine-orb{
+ border:9px solid transparent;
+ background:
+  linear-gradient(135deg,rgba(255,255,255,.36),rgba(135,172,198,.08) 38%,rgba(20,48,72,.12) 75%,rgba(255,255,255,.28)) padding-box,
+  linear-gradient(145deg,#f8fcff,#71899c 18%,#f9fdff 32%,#879cac 53%,#f7fbff 72%,#60798e) border-box;
+ box-shadow:inset 0 0 30px #fff9,inset 0 -18px 32px #41617a22,0 0 0 2px #fff9,0 10px 28px #132c4433;
+}
+.machine-orb:before{
+ inset:8px 13px 10px 10px;border:2px solid #ffffffa8;
+ box-shadow:inset 8px 0 14px #fff5;
+}
+.machine-orb:after{border-color:#9aabba;background:linear-gradient(90deg,#687f91,#f7fbff 24%,#9aabba 52%,#fff 76%,#60798b);box-shadow:0 -3px 8px #fff9}
+.machine-top{border-color:#8296a8;background:linear-gradient(90deg,#657c90,#f8fcff 22%,#9eafbd 50%,#fff 75%,#667e91);box-shadow:0 2px 7px #132c4440}
+.machine-neck{border-color:#8297a9;background:linear-gradient(90deg,#ffffff99,#8095a777,#fff9)}
+.machine-ring{border-right-color:#ff766d;border-bottom-color:#ed5148;box-shadow:0 0 0 2px #fff6;filter:drop-shadow(0 0 8px #ff554c)}
+.machine-base{background:linear-gradient(180deg,#fff 0%,#c6d2dc 42%,#71879a 47%,#e8eef3 70%,#879aaa);border:6px solid #f45e55;box-shadow:inset 0 2px 5px #fff,0 7px 0 #b93d38,0 17px 24px #102b4633}
+.machine-stand{background:linear-gradient(90deg,#9b2f31,#ffb1a3 25%,#e94e48 55%,#8d2e32)}
+.inner-balls{display:block;left:20px;right:20px;bottom:20px;height:190px;overflow:hidden;clip-path:ellipse(49% 48% at 50% 54%);perspective:500px}
+.mix-ball{
+ position:absolute;left:50%;top:50%;width:25px;height:25px;border-radius:50%;
+ display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;
+ color:#33485a;background:radial-gradient(circle at 28% 23%,#fff 0 10%,#f7fafc 25%,#dce5ec 58%,#8296a7 100%);
+ border:1px solid #8fa1af;box-shadow:inset -2px -3px 4px #42596a55,0 3px 5px #122a3f66;
+ transition:opacity .18s;
+}
+.mix-ball:after{content:"";position:absolute;width:7px;height:4px;border-radius:50%;background:#fff9;left:4px;top:4px;filter:blur(.5px)}
+.mix-ball.gone{opacity:0;visibility:hidden}
+.machine.is-mixing .mix-ball{animation:none}
+.machine-orb:after{pointer-events:none}
+.machine-orb{position:absolute}
+.machine-orb .lift-track{height:172px;border-left:5px solid #f7fbffbb;border-right:5px solid #71879a99;background:linear-gradient(90deg,#fff8,#9eb2c255,#fff8);box-shadow:0 0 10px #fff8}
+.machine-orb:before{content:"";position:absolute;z-index:6;left:22px;top:16px;width:48px;height:150px;border-radius:50%;transform:rotate(17deg);background:linear-gradient(90deg,transparent,#ffffff80 40%,#ffffff18 75%,transparent);border:0;pointer-events:none}
+.side-chute{position:absolute;z-index:7;left:calc(50% + 91px);top:155px;width:90px;height:98px;border-right:8px solid #a8b8c6;border-bottom:8px solid #d9e4ed;border-radius:0 0 55px 0;transform:rotate(-9deg);filter:drop-shadow(2px 3px 3px #18324d55);background:linear-gradient(135deg,#ffffff40,transparent 60%);pointer-events:none}
+.side-chute:before{content:"";position:absolute;right:-8px;bottom:-8px;width:42px;height:18px;border-radius:0 0 12px 12px;background:linear-gradient(#fff,#9bafbf);border:2px solid #8094a6}
+.draw-ball{box-shadow:inset -3px -4px 5px #526a7a44,0 4px 12px #102b4677}
+.draw-ball.special{box-shadow:inset -3px -4px 5px #885b1944,0 0 18px #f2bb49,0 4px 12px #102b4677}
+@media(max-width:380px){.side-chute{left:calc(50% + 80px);transform:scale(.9) rotate(-9deg);transform-origin:top left}}
+
 </style>
 </head>
-<body><main>
-<header class="hero"><h1>49 幸運選號機</h1><p>選擇號碼・載入大樂透最近十期・隨機推薦三組</p></header>
-<section class="card"><h2>第一區｜49 個選號按鈕</h2><p class="sub">從 01～49 選擇最多 7 個號碼</p><div id="balls"></div><div class="actions"><button class="action light" id="clearPick">清除選號</button><button class="action light" id="randomPick">隨機選 7 號</button></div></section>
-<section class="card"><h2>第二區｜我的 7 個號碼</h2><p class="sub" id="count">已選 0 / 7</p><div class="slots" id="selected"></div></section>
-<section class="card"><h2>第三區｜大樂透最近 10 期開獎號碼</h2><p class="sub">每次開啟自動向台灣彩券資料來源更新；每期 6 個一般號碼＋1 個特別號。</p><div id="drawStatus" class="status">正在載入最近 10 期開獎資料…</div><div id="drawRows" class="draw-list"></div><div class="legend">藍色：一般號碼　金色：特別號。以上 7 個號碼都會納入第四區候選池。</div><div class="actions"><button class="action light" id="refreshDraws">重新載入開獎資料</button></div></section>
-<section class="card"><h2>第四區｜7 碼涵蓋模擬＋開球動畫</h2><p class="sub">每組以 7 顆球呈現「6 個一般號碼候選＋1 個特別號候選」：前 6 顆藍球、第 7 顆金球。按下按鈕後會逐顆滾動開出三組號碼。</p><button class="action" style="width:100%" id="generate">開始開球動畫・產生三組 7 碼</button><div id="animationStatus" class="status" style="margin-top:10px" aria-live="polite">尚未開始開球。</div><div class="results" id="results" style="margin-top:12px"><p class="sub">按下按鈕即可觀看 7 顆球依序開出。</p></div><p class="note">說明：這是 7 碼情境模擬，金球只代表「特別號候選」的展示位置，不代表能預測下一期特別號或保證中獎。歷史開獎號碼不會提高未來中獎機率。</p><div class="actions"><button class="action light" id="clearResults">清除推薦結果</button></div></section>
-<section class="card"><h2>機率計算｜台灣大樂透 6/49 規則</h2><p class="sub">每期開出 6 個一般號碼，另從其餘 43 個號碼開出 1 個特別號。</p><p style="margin:12px 0 4px;font-size:14px">標準單注：選 6 個號碼，頭獎（6 個一般號碼全中）</p><div class="stat">1 / 13,983,816</div><p class="note">計算：C(49,6) = 13,983,816 種可能組合。</p><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><p style="margin:0 0 4px;font-size:14px">本 APP 每組選 7 個號碼：涵蓋當期全部 6 個一般號碼</p><div class="stat">1 / 1,997,688</div><p class="note">7 個選號中有 7 種方式可包含全部 6 個一般號碼；相當於 7 組不同的 6 碼組合。</p><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><p style="margin:0 0 4px;font-size:14px">本 APP 每組 7 個號碼：同時包含 6 個一般號碼及特別號</p><div class="stat">1 / 85,900,584</div><p class="note">這是 7 個號碼恰好涵蓋當期 6 個一般號碼與特別號的機率，不是標準單注頭獎機率。</p><p class="note" style="margin-top:12px">提醒：APP 的每組 7 碼是選號參考組合，不等於官方標準單注（6 碼）。實際投注方式、獎項與派彩依台灣彩券公告為準。每期開獎彼此獨立；最近十期歷史資料不能預測下一期，也不會提高任何號碼的中獎機率。</p></section>
-<div id="message" role="status" aria-live="polite">選號資料只保留在本次開啟期間；重新開啟會清空。</div><footer>免費個人使用版・不需登入・不會保存你的選號資料</footer>
+<body>
+<main>
+<header class="hero"><h1>49 幸運選號機</h1><p>49 顆球真實碰撞翻騰・六個一般號碼・最後一顆特別號</p></header>
+
+<section class="card">
+<h2>第一區｜49 球透明開獎機</h2>
+<p class="sub">按下「開始隨機開獎」，球體開始翻騰；中央升球、側邊落球，最後一顆為特別號。</p>
+<div class="machine-wrap">
+ <div class="machine" id="machine" aria-label="透明球體大樂透開獎機">
+  <div class="machine-top"></div><div class="machine-neck"></div>
+  <div class="machine-ring"></div>
+  <div class="side-chute" aria-hidden="true"></div>
+  <div class="machine-orb">
+   <div class="lift-track"></div>
+   <div class="inner-balls" id="innerBalls"></div>
+   <div class="draw-ball" id="drawBall"></div>
+  </div>
+  <div class="machine-stand"></div><div class="machine-base"></div>
+ </div>
+</div>
+<div class="machine-status" id="machineStatus" aria-live="polite">開獎機待命中，準備 49 顆球。</div>
+<div class="draw-result">
+ <div class="draw-result-title">本次開獎結果｜最後一顆為特別號</div>
+ <div class="slots" id="drawnSlots">
+  <div class="slot">－</div><div class="slot">－</div><div class="slot">－</div><div class="slot">－</div><div class="slot">－</div><div class="slot">－</div><div class="slot special">特別</div>
+ </div>
+</div>
+<div class="actions">
+ <button class="action" id="randomPick">開始隨機開獎</button>
+ <button class="action light" id="clearPick">清除結果</button>
+</div>
+<p class="sub" style="margin-top:12px">也可以直接點選下方號碼；手動選取最多 7 顆。隨機開獎時，前 6 顆是一般號碼，第 7 顆是特別號。</p>
+<div id="balls"></div>
+</section>
+
+<section class="card">
+<h2>第二區｜本次 7 顆開獎球</h2><p class="sub" id="count">尚未開獎</p><div class="slots" id="selected"></div>
+</section>
+
+<section class="card">
+<h2>第三區｜大樂透最近十期開獎資料</h2>
+<p class="sub" id="historyStatus">正在連線載入台灣彩券最近十期資料…</p>
+<div class="draw-history" id="drawHistory"></div>
+</section>
+
+<section class="card">
+<h2>第四區｜隨機產生 3 組 7 碼模擬結果</h2><p class="sub">以第一區開出的號碼及第三區最近十期的號碼作為候選池；每組前 6 顆為一般號碼候選，最後 1 顆為特別號候選。</p>
+<button class="action" style="width:100%" id="generate">產生三組 7 個號碼</button>
+<div class="results" id="results" style="margin-top:12px"><p class="sub">按下按鈕即可產生推薦組合。</p></div>
+<div class="actions"><button class="action light" id="clearResults">清除推薦結果</button></div>
+</section>
+
+<section class="card">
+<h2>大樂透機率計算</h2>
+<p class="sub">大樂透正式玩法：01～49 選 6 個一般號碼，另開 1 個特別號。</p>
+<div class="stat">13,983,816 種</div>
+<p style="margin:12px 0 4px;font-size:14px">單注 6 碼頭獎機率</p><div class="stat">1 / 13,983,816</div>
+<p style="margin:12px 0 4px;font-size:14px">7 碼系統（涵蓋 7 組 6 碼）頭獎機率</p><div class="stat">1 / 1,997,688</div>
+<p style="margin:12px 0 4px;font-size:14px">7 碼恰好等於 6 個一般號碼＋特別號的機率</p><div class="stat">1 / 85,900,584</div>
+<p class="note" style="margin-top:12px">上述為理論組合機率。開獎機動畫只是隨機模擬，不會預測或提高中獎機率；每期開獎彼此獨立。</p>
+</section>
+<div id="message" role="status" aria-live="polite">資料只保留在本次開啟期間；重新開啟會清空。</div>
+<footer>免費個人使用版・不需登入・不會保存你的選號資料</footer>
 </main>
 <script>
 (()=>{
- 'use strict';
- const $=id=>document.getElementById(id),pad=n=>String(n).padStart(2,'0');
- let picked=[],draws=[];
+ const $=id=>document.getElementById(id);
+ let picked=[], drawing=false, drawIsOfficialStyle=false;
+ const pad=n=>String(n).padStart(2,'0');
+ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  function say(s){$('message').textContent=s}
- function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+ function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
  function render(){
   $('balls').innerHTML='';
-  for(let n=1;n<=49;n++){const b=document.createElement('button');b.className='ball'+(picked.includes(n)?' selected':'');b.textContent=pad(n);b.setAttribute('aria-pressed',picked.includes(n));b.addEventListener('click',()=>{if(picked.includes(n))picked=picked.filter(x=>x!==n);else if(picked.length<7)picked.push(n);else say('最多只能選擇 7 個號碼。');render()});$('balls').append(b)}
-  $('count').textContent=`已選 ${picked.length} / 7`;$('selected').innerHTML='';for(let i=0;i<7;i++){const d=document.createElement('div');d.className='slot';d.textContent=picked[i]?pad(picked[i]):'－';$('selected').append(d)}
+  for(let n=1;n<=49;n++){
+   let b=document.createElement('button');b.className='ball'+(picked.includes(n)?' selected':'');b.textContent=pad(n);b.setAttribute('aria-pressed',picked.includes(n));
+   b.addEventListener('click',()=>{if(drawing)return;drawIsOfficialStyle=false;if(picked.includes(n))picked=picked.filter(x=>x!==n);else if(picked.length<7)picked.push(n);else say('最多只能選擇 7 個號碼。');render()});
+   $('balls').append(b)
+  }
+  $('count').textContent=picked.length?`已選 ${picked.length} / 7（若為動畫開獎，最後一顆為特別號）`:'尚未開獎';
+  $('selected').innerHTML='';
+  for(let i=0;i<7;i++){let d=document.createElement('div');d.className='slot'+(i===6&&picked[i]&&drawIsOfficialStyle?' special':'');d.textContent=picked[i]?pad(picked[i]):'－';$('selected').append(d)}
  }
- function renderDraws(){
-  const host=$('drawRows');host.innerHTML='';
-  if(!draws.length)return;
-  draws.forEach(d=>{const row=document.createElement('div');row.className='draw-row';const head=document.createElement('div');head.className='draw-head';const period=document.createElement('span');period.className='draw-period';period.textContent=`第 ${d.period} 期`;const date=document.createElement('span');date.textContent=d.date;head.append(period,date);const nums=document.createElement('div');nums.className='draw-numbers';d.numbers.forEach((n,i)=>{const ball=document.createElement('span');ball.className='draw-ball'+(i===6?' special':'');ball.textContent=pad(n);ball.title=i===6?'特別號':'一般號碼';nums.append(ball)});row.append(head,nums);host.append(row)});
+ let physicsFrame=0, physicsRunning=false, ballPhysics=[];
+ function buildMachineBalls(){
+  $('innerBalls').innerHTML='';ballPhysics=[];
+  for(let n=1;n<=49;n++){
+   let b=document.createElement('div');b.className='mix-ball';b.textContent=pad(n);b.dataset.number=n;
+   $('innerBalls').append(b);
+   ballPhysics.push({el:b,x:0,y:0,vx:(Math.random()-.5)*2.2,vy:(Math.random()-.5)*2.2,r:12.5});
+  }
+  layoutPhysicsBalls();
  }
- async function loadDraws(){
-  const status=$('drawStatus');status.className='status';status.textContent='正在連線取得大樂透最近 10 期…';$('drawRows').innerHTML='';
-  const now=new Date();let cursor=new Date(now.getFullYear(),now.getMonth(),1);const all=[];let months=0;
+ function layoutPhysicsBalls(){
+  const area=$('innerBalls'),w=area.clientWidth||210,h=area.clientHeight||180;
+  ballPhysics.forEach((p,i)=>{
+   const angle=i*2.39996,rad=Math.sqrt((i+.5)/49)*Math.min(w*.43,h*.43);
+   p.x=w/2+Math.cos(angle)*rad;p.y=h/2+Math.sin(angle)*rad;
+   p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';p.el.style.transform='translate(-50%,-50%)';
+  });
+ }
+ function startBallPhysics(){
+  if(physicsRunning)return;physicsRunning=true;
+  const area=$('innerBalls');
+  const step=()=>{
+   if(!physicsRunning)return;
+   const w=area.clientWidth||210,h=area.clientHeight||180,cx=w/2,cy=h/2,rx=w*.455,ry=h*.455;
+   for(let i=0;i<ballPhysics.length;i++){
+    const p=ballPhysics[i];if(p.el.classList.contains('gone'))continue;
+    p.vx+=(Math.random()-.5)*.62;p.vy+=(Math.random()-.5)*.62;
+    p.vx*=.992;p.vy*=.992;
+    p.x+=p.vx;p.y+=p.vy;
+    const dx=(p.x-cx)/rx,dy=(p.y-cy)/ry,edge=dx*dx+dy*dy;
+    if(edge>1){const nx=(p.x-cx)/(rx*rx),ny=(p.y-cy)/(ry*ry),dot=p.vx*nx+p.vy*ny,scale=2*dot/(nx*nx+ny*ny||1);p.vx-=scale*nx;p.vy-=scale*ny;p.x-=p.vx*.8;p.y-=p.vy*.8}
+    for(let j=i+1;j<ballPhysics.length;j++){
+     const q=ballPhysics[j];if(q.el.classList.contains('gone'))continue;
+     const ax=q.x-p.x,ay=q.y-p.y,d=Math.hypot(ax,ay),min=p.r+q.r;
+     if(d>0&&d<min){const nx=ax/d,ny=ay/d,rel=(p.vx-q.vx)*nx+(p.vy-q.vy)*ny;if(rel>0){p.vx-=rel*nx*.82;p.vy-=rel*ny*.82;q.vx+=rel*nx*.82;q.vy+=rel*ny*.82}const push=(min-d)*.52;p.x-=nx*push;p.y-=ny*push;q.x+=nx*push;q.y+=ny*push}
+    }
+    p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';
+   }
+   physicsFrame=requestAnimationFrame(step);
+  };physicsFrame=requestAnimationFrame(step);
+ }
+ function stopBallPhysics(){physicsRunning=false;cancelAnimationFrame(physicsFrame)}
+ function renderDrawSlots(numbers, count){
+  $('drawnSlots').innerHTML='';
+  for(let i=0;i<7;i++){let d=document.createElement('div');d.className='slot'+(i===6?' special':'');d.textContent=i<count&&numbers[i]?pad(numbers[i]):(i===6?'特別':'－');$('drawnSlots').append(d)}
+ }
+ function clearDraw(){
+  picked=[];drawIsOfficialStyle=false;$('machine').classList.remove('is-mixing');stopBallPhysics();$('drawBall').className='draw-ball';$('drawBall').textContent='';
+  $('machineStatus').textContent='開獎機待命中，準備 49 顆球。';renderDrawSlots([],0);render();buildMachineBalls();say('已清除開獎結果。')
+ }
+ async function runDraw(){
+  if(drawing)return;
+  drawing=true;$('randomPick').disabled=true;$('clearPick').disabled=true;
+  picked=[];drawIsOfficialStyle=true;render();renderDrawSlots([],0);buildMachineBalls();
+  const nums=shuffle(Array.from({length:49},(_,i)=>i+1)).slice(0,7);
+  const machine=$('machine'),ball=$('drawBall');
+  machine.classList.add('is-mixing');startBallPhysics();$('machineStatus').textContent='49 顆球正在球體內翻騰攪拌…';say('開獎機攪球中，請稍候。');
+  await sleep(1750);
+  machine.classList.remove('is-mixing');stopBallPhysics();
+  for(let i=0;i<7;i++){
+   const n=nums[i],special=i===6;
+   $('machineStatus').textContent=special?'最後一顆特別號正在升球、側邊落下…':`第 ${i+1} 顆一般號碼正在中央升球…`;
+   ball.className='draw-ball'+(special?' special':'');ball.textContent=pad(n);
+   void ball.offsetWidth;ball.classList.add('travel');
+   await sleep(1050);
+   ball.className='draw-ball';
+   const inner=$('innerBalls').querySelector(`[data-number="${n}"]`);if(inner)inner.classList.add('gone');
+   picked.push(n);render();renderDrawSlots(picked,picked.length);
+   $('machineStatus').textContent=special?'特別號已由側邊通道落下！':`第 ${i+1} 顆已落球：${pad(n)}`;
+   await sleep(280);
+  }
+  picked=picked.slice(0,6).sort((a,b)=>a-b).concat(nums[6]);
+  render();renderDrawSlots(picked,7);
+  $('machineStatus').textContent='本次開球完成：6 個一般號碼＋1 個特別號。';
+  say('開球完成。前 6 顆為一般號碼，最後落下的金球為特別號。');
+  drawing=false;$('randomPick').disabled=false;$('clearPick').disabled=false;
+ }
+
+ let recentNumbers=[];
+ const LOTTO_API='https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result';
+ async function loadRecentDraws(){
+  const status=$('historyStatus'),container=$('drawHistory');
+  status.textContent='正在載入最近十期官方開獎資料…';
+  container.innerHTML='';
+  const raw=[];
+  const cursor=new Date();cursor.setDate(1);
   try{
-   while(all.length<10&&months<4){const month=`${cursor.getFullYear()}-${pad(cursor.getMonth()+1)}`;const url=`https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?month=${month}&pageSize=${10-all.length}`;const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);let json;try{const res=await fetch(url,{signal:controller.signal,cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);json=await res.json()}finally{clearTimeout(timer)}const items=json?.content?.lotto649Res||[];all.push(...items);cursor.setMonth(cursor.getMonth()-1);months++;}
-   const unique=new Map();all.forEach(x=>{if(x?.period&&Array.isArray(x.drawNumberAppear)&&x.drawNumberAppear.length>=7)unique.set(String(x.period),x)});
-   draws=[...unique.values()].sort((a,b)=>String(b.period).localeCompare(String(a.period))).slice(0,10).map(x=>({period:String(x.period),date:String(x.lotteryDate||'').slice(0,10),numbers:x.drawNumberAppear.slice(0,7).map(Number)}));
-   if(!draws.length)throw new Error('沒有取得可用的開獎資料');
-   renderDraws();status.textContent=`已更新 ${draws.length} 期資料｜最新一期：${draws[0].period}（${draws[0].date}）`;
-  }catch(err){status.className='status error';status.textContent='目前無法自動取得台灣彩券資料。請確認網路連線後按「重新載入開獎資料」。若官方 API 暫時無法連線，第三區不會以舊資料冒充最新資料。';}
+   for(let m=0;m<12 && raw.length<10;m++){
+    const month=`${cursor.getFullYear()}-${pad(cursor.getMonth()+1)}`;
+    const url=`${LOTTO_API}?month=${month}&pageSize=${10-raw.length}`;
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),12000);
+    let json;
+    try{
+     const response=await fetch(url,{signal:controller.signal,cache:'no-store'});
+     if(!response.ok)throw new Error(`HTTP ${response.status}`);
+     json=await response.json();
+    }finally{clearTimeout(timer)}
+    const monthRows=json?.content?.lotto649Res||[];
+    raw.push(...monthRows);
+    cursor.setMonth(cursor.getMonth()-1);
+   }
+   const draws=raw.slice(0,10).map(item=>{
+    const nums=Array.isArray(item.drawNumberAppear)?item.drawNumberAppear:[];
+    return {period:item.period||'',date:String(item.lotteryDate||'').slice(0,10),main:nums.slice(0,6),special:nums[6]};
+   }).filter(d=>d.main.length===6 && Number.isInteger(Number(d.special)));
+   if(!draws.length)throw new Error('沒有取得可用開獎資料');
+   recentNumbers=[...new Set(draws.flatMap(d=>[...d.main,Number(d.special)]))];
+   container.innerHTML='';
+   draws.forEach(d=>{
+    const row=document.createElement('div');row.className='history-row';
+    const meta=document.createElement('div');meta.className='history-meta';
+    const period=document.createElement('strong');period.textContent=d.period?`第 ${d.period} 期`:'大樂透開獎';
+    const date=document.createElement('span');date.textContent=d.date;
+    meta.append(period,date);
+    const nums=document.createElement('div');nums.className='history-numbers';
+    [...d.main,Number(d.special)].forEach((n,i)=>{
+     const ball=document.createElement('div');ball.className='history-ball'+(i===6?' special':'');ball.textContent=pad(n);nums.append(ball);
+    });
+    row.append(meta,nums);container.append(row);
+   });
+   status.textContent=`已載入最近 ${draws.length} 期；金色球為各期特別號。`;
+  }catch(error){
+   recentNumbers=[];
+   status.textContent='目前無法連線取得官方資料，請稍後重試。';
+   container.innerHTML='<div class="history-empty">開獎資料暫時無法載入。請確認網路連線後重新整理頁面；官方資料來源若調整，也可能需要更新程式。</div>';
+   console.warn('載入大樂透歷史資料失敗：',error);
+  }
  }
- $('clearPick').onclick=()=>{picked=[];render();say('已清除第一區選號。')};
- $('randomPick').onclick=()=>{picked=shuffle(Array.from({length:49},(_,i)=>i+1)).slice(0,7).sort((a,b)=>a-b);render();say('已隨機選出 7 個號碼。')};
- $('refreshDraws').onclick=loadDraws;
- $('clearResults').onclick=()=>{$('results').innerHTML='<p class="sub">按下按鈕即可觀看 7 顆球依序開出。</p>';$('animationStatus').textContent='尚未開始開球。';$('generate').disabled=false;$('generate').textContent='開始開球動畫・產生三組 7 碼';say('已清除推薦結果。')};
- const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
- async function spinBall(el,finalNumber,delay,isSpecial){
-  await sleep(delay);el.classList.add('rolling');
-  const timer=setInterval(()=>{el.textContent=pad(1+Math.floor(Math.random()*49))},55);
-  await sleep(850);clearInterval(timer);el.textContent=pad(finalNumber);el.classList.remove('rolling');el.classList.add('landed');
-  if(isSpecial)el.setAttribute('aria-label',`特別號候選 ${pad(finalNumber)}`);else el.setAttribute('aria-label',`一般號碼候選 ${pad(finalNumber)}`);
- }
- $('generate').onclick=async()=>{
-  const button=$('generate');if(button.disabled)return;button.disabled=true;button.textContent='開球中…';$('animationStatus').textContent='球體正在攪拌，號碼即將依序開出…';
-  const pool=new Set(picked);draws.forEach(d=>d.numbers.forEach(n=>{if(Number.isInteger(n)&&n>=1&&n<=49)pool.add(n)}));
-  let candidates=[...pool];const choose7=n=>{if(n<7)return 0;let v=1;for(let i=1;i<=7;i++)v=v*(n-i+1)/i;return v};
-  const fallback=candidates.length<7||choose7(candidates.length)<3;if(fallback)candidates=Array.from({length:49},(_,i)=>i+1);
-  const combos=[];while(combos.length<3){const combo=shuffle([...candidates]).slice(0,7).sort((a,b)=>a-b);if(!combos.some(x=>x.join(',')===combo.join(',')))combos.push(combo)}
-  $('results').innerHTML='';const animations=[];combos.forEach((arr,i)=>{const specialIndex=Math.floor(Math.random()*7);const displayArr=arr.filter((_,j)=>j!==specialIndex).concat(arr[specialIndex]);const box=document.createElement('div');box.className='result';const title=document.createElement('div');title.className='result-title';title.textContent=`推薦第 ${i+1} 組｜6 個一般號碼候選＋1 個特別號候選`;const nums=document.createElement('div');nums.className='slots';displayArr.forEach((n,j)=>{const ball=document.createElement('div');ball.className='slot'+(j===6?' special':'');ball.textContent='●';nums.append(ball);animations.push(spinBall(ball,n,(i*7+j)*95,j===6))});box.append(title,nums);$('results').append(box)});
-  await Promise.all(animations);button.disabled=false;button.textContent='再開一次・產生三組 7 碼';$('animationStatus').textContent='開球完成：三組各 7 顆球已全部開出。金球為特別號候選位置示意。';
-  say(fallback?'候選池不足以組成三組不同組合，已改用完整 49 號碼池；開球動畫完成。':'已依第一區及最近十期資料產生三組 7 碼，開球動畫完成。');
+ $('clearPick').onclick=()=>{if(!drawing)clearDraw()};
+ $('randomPick').onclick=runDraw;
+ $('clearResults').onclick=()=>{$('results').innerHTML='<p class="sub">按下按鈕即可產生推薦組合。</p>';say('已清除推薦結果。')};
+ $('generate').onclick=()=>{
+  let pool=[...new Set([...picked,...recentNumbers])];
+  if(pool.length<7)pool=Array.from({length:49},(_,i)=>i+1);
+  const ways=pool.length*(pool.length-1)*(pool.length-2)*(pool.length-3)*(pool.length-4)*(pool.length-5)*(pool.length-6)/5040;
+  if(ways<3)pool=Array.from({length:49},(_,i)=>i+1);
+  let combos=[];
+  while(combos.length<3){let combo=shuffle([...pool]).slice(0,7).sort((a,b)=>a-b);if(!combos.some(x=>x.join()==combo.join()))combos.push(combo)}
+  $('results').innerHTML='';
+  combos.forEach((arr,i)=>{
+   let box=document.createElement('div');box.className='result';
+   let title=document.createElement('div');title.className='result-title';title.textContent=`模擬第 ${i+1} 組（最後一碼為特別號候選）`;
+   let nums=document.createElement('div');nums.className='slots';
+   arr.forEach((n,j)=>{let d=document.createElement('div');d.className='slot'+(j===6?' special':'');d.textContent=pad(n);nums.append(d)});
+   box.append(title,nums);$('results').append(box)
+  });
+  say('已產生三組模擬結果；金色最後一碼是特別號候選，不代表預測。')
  };
- render();loadDraws();
+ buildMachineBalls();renderDrawSlots([],0);render();loadRecentDraws();
 })();
 </script>
-<script>if('serviceWorker' in navigator&&location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
-</body></html>
+<script>
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
