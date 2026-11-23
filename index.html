@@ -32,7 +32,7 @@ button:active{opacity:.75}button:disabled{opacity:.55;cursor:wait}
 .rows{display:grid;gap:10px}.manual-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .manual-row input{width:100%;min-width:0;text-align:center;padding:10px 1px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:15px}
 .row-label{font-size:12px;color:var(--muted);margin-bottom:5px}
-.results{display:grid;gap:10px}.result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px}.result-title{font-size:14px;font-weight:700;margin-bottom:9px}.result .slot{background:white}.result .slot.special{background:#fff1d4}
+.results{display:grid;gap:10px}.result{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:12px}.result-title{font-size:14px;font-weight:700;margin-bottom:9px}.result .slot{background:white;opacity:0;transform:translateY(9px) scale(.86);animation:resultBallReveal .38s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--reveal-delay,0s)}.result .slot.special{background:#fff1d4;border-color:#e9bd65;color:#8a5700;box-shadow:0 0 12px #e5a52d44}@keyframes resultBallReveal{to{opacity:1;transform:translateY(0) scale(1)}}.result-order{font-size:11px;color:var(--muted);margin-top:8px}
 .stat{font-weight:750;font-size:21px;color:var(--navy)}.note{font-size:12px;line-height:1.65;color:var(--muted)}
 #message{min-height:20px;font-size:13px;color:var(--muted);margin:10px 2px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
@@ -205,7 +205,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 </section>
 
 <section class="card">
-<h2>第四區｜隨機產生 3 組 7 碼模擬結果</h2><p class="sub">以第一區開出的號碼及第三區最近十期的號碼作為候選池；每組前 6 顆為一般號碼候選，最後 1 顆為特別號候選。</p>
+<h2>第四區｜大樂透順序模擬 3 組 7 碼</h2><p class="sub">比照大樂透開獎順序：先開出 6 顆一般號碼，再從剩餘號碼開出第 7 顆特別號。球號依開出順序顯示，不按大小排序。</p>
 <button class="action" style="width:100%" id="generate">產生三組 7 個號碼</button>
 <div class="results" id="results" style="margin-top:12px"><p class="sub">按下按鈕即可產生推薦組合。</p></div>
 <div class="actions"><button class="action light" id="clearResults">清除推薦結果</button></div>
@@ -380,16 +380,24 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
   const ways=pool.length*(pool.length-1)*(pool.length-2)*(pool.length-3)*(pool.length-4)*(pool.length-5)*(pool.length-6)/5040;
   if(ways<3)pool=Array.from({length:49},(_,i)=>i+1);
   let combos=[];
-  while(combos.length<3){let combo=shuffle([...pool]).slice(0,7).sort((a,b)=>a-b);if(!combos.some(x=>x.join()==combo.join()))combos.push(combo)}
+  while(combos.length<3){
+   const shuffled=shuffle([...pool]);
+   const main=shuffled.slice(0,6);
+   const specialPool=shuffled.slice(6);
+   const special=specialPool[Math.floor(Math.random()*specialPool.length)];
+   const combo=[...main,special];
+   if(!combos.some(x=>x.join()==combo.join()))combos.push(combo);
+  }
   $('results').innerHTML='';
   combos.forEach((arr,i)=>{
    let box=document.createElement('div');box.className='result';
-   let title=document.createElement('div');title.className='result-title';title.textContent=`模擬第 ${i+1} 組（最後一碼為特別號候選）`;
+   let title=document.createElement('div');title.className='result-title';title.textContent=`模擬第 ${i+1} 組｜依序開出`;
    let nums=document.createElement('div');nums.className='slots';
-   arr.forEach((n,j)=>{let d=document.createElement('div');d.className='slot'+(j===6?' special':'');d.textContent=pad(n);nums.append(d)});
-   box.append(title,nums);$('results').append(box)
+   arr.forEach((n,j)=>{let d=document.createElement('div');d.className='slot'+(j===6?' special':'');d.style.setProperty('--reveal-delay',`${j*0.22}s`);d.textContent=pad(n);nums.append(d)});
+   let order=document.createElement('div');order.className='result-order';order.textContent='第 1～6 顆：一般號碼　｜　第 7 顆（金色）：特別號';
+   box.append(title,nums,order);$('results').append(box)
   });
-  say('已產生三組模擬結果；金色最後一碼是特別號候選，不代表預測。')
+  say('已依大樂透順序產生三組模擬結果：先 6 顆一般號碼，最後 1 顆金色特別號。')
  };
  const ledRing=$('ledRing');if(ledRing){for(let i=0;i<28;i++){const led=document.createElement('i');const a=(Math.PI*2*i/28)-Math.PI/2;led.style.left=(50+50*Math.cos(a))+'%';led.style.top=(50+50*Math.sin(a))+'%';ledRing.append(led)}}
  buildMachineBalls();renderDrawSlots([],0);render();loadRecentDraws();
