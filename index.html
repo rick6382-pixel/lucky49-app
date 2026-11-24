@@ -111,7 +111,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
  border:1px solid #8fa1af;box-shadow:inset -2px -3px 4px #42596a55,0 3px 5px #122a3f66;
  transition:opacity .18s;
 }
-.mix-ball:after{content:"";position:absolute;width:7px;height:4px;border-radius:50%;background:#fff9;left:4px;top:4px;filter:blur(.5px)}
+.mix-ball:after{content:"";position:absolute;width:8px;height:5px;border-radius:50%;background:#fff9;left:4px;top:4px;filter:blur(.5px)}
+.mix-ball{will-change:left,top,transform;backface-visibility:hidden}
 .mix-ball.gone{opacity:0;visibility:hidden}
 .machine.is-mixing .mix-ball{animation:none}
 .machine-orb:after{pointer-events:none}
@@ -125,7 +126,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 @media(max-width:380px){.side-chute{left:calc(50% + 80px);transform:scale(.9) rotate(-9deg);transform-origin:top left}}
 
 
-/* v11: photorealistic 3D glass globe treatment */
+/* v12: stronger circulating airflow and visible ball-to-ball collisions */
 .machine-orb{
   border:10px solid transparent;
   background:
@@ -182,7 +183,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 </head>
 <body>
 <main>
-<header class="hero"><h1>49 幸運選號機</h1><p>49 顆球真實碰撞翻騰・六個一般號碼・最後一顆特別號</p></header>
+<header class="hero"><h1>49 幸運選號機</h1><p>49 顆球氣流翻騰與碰撞模擬・六個一般號碼・最後一顆特別號</p></header>
 
 <section class="card">
 <h2>第一區｜49 球透明開獎機</h2>
@@ -273,7 +274,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
   for(let n=1;n<=49;n++){
    let b=document.createElement('div');b.className='mix-ball';b.textContent=pad(n);b.dataset.number=n;
    $('innerBalls').append(b);
-   ballPhysics.push({el:b,x:0,y:0,vx:(Math.random()-.5)*2.2,vy:(Math.random()-.5)*2.2,r:12.5});
+   ballPhysics.push({el:b,x:0,y:0,vx:(Math.random()-.5)*4.4,vy:(Math.random()-.5)*4.4,r:12.5,rot:Math.random()*360});
   }
   layoutPhysicsBalls();
  }
@@ -286,27 +287,54 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
   });
  }
  function startBallPhysics(){
-  if(physicsRunning)return;physicsRunning=true;
+  if(physicsRunning)return;
+  physicsRunning=true;
   const area=$('innerBalls');
-  const step=()=>{
+  let last=0,phase=0;
+  const step=(stamp)=>{
    if(!physicsRunning)return;
-   const w=area.clientWidth||210,h=area.clientHeight||180,cx=w/2,cy=h/2,rx=w*.455,ry=h*.455;
-   for(let i=0;i<ballPhysics.length;i++){
-    const p=ballPhysics[i];if(p.el.classList.contains('gone'))continue;
-    p.vx+=(Math.random()-.5)*.62;p.vy+=(Math.random()-.5)*.62;
-    p.vx*=.992;p.vy*=.992;
-    p.x+=p.vx;p.y+=p.vy;
-    const dx=(p.x-cx)/rx,dy=(p.y-cy)/ry,edge=dx*dx+dy*dy;
-    if(edge>1){const nx=(p.x-cx)/(rx*rx),ny=(p.y-cy)/(ry*ry),dot=p.vx*nx+p.vy*ny,scale=2*dot/(nx*nx+ny*ny||1);p.vx-=scale*nx;p.vy-=scale*ny;p.x-=p.vx*.8;p.y-=p.vy*.8}
-    for(let j=i+1;j<ballPhysics.length;j++){
-     const q=ballPhysics[j];if(q.el.classList.contains('gone'))continue;
-     const ax=q.x-p.x,ay=q.y-p.y,d=Math.hypot(ax,ay),min=p.r+q.r;
-     if(d>0&&d<min){const nx=ax/d,ny=ay/d,rel=(p.vx-q.vx)*nx+(p.vy-q.vy)*ny;if(rel>0){p.vx-=rel*nx*.82;p.vy-=rel*ny*.82;q.vx+=rel*nx*.82;q.vy+=rel*ny*.82}const push=(min-d)*.52;p.x-=nx*push;p.y-=ny*push;q.x+=nx*push;q.y+=ny*push}
+   const dt=Math.min(2,(stamp-last||16.7)/16.7);last=stamp;phase+=.035*dt;
+   const w=area.clientWidth||220,h=area.clientHeight||190,cx=w/2,cy=h*.57,rx=w*.455,ry=h*.455;
+   const active=ballPhysics.filter(p=>!p.el.classList.contains('gone'));
+   for(let i=0;i<active.length;i++){
+    const p=active[i];
+    const dx=p.x-cx,dy=p.y-cy;
+    const radius=Math.max(1,Math.hypot(dx,dy));
+    // Air jets create a circulating current: upward in the middle, outward near the top,
+    // then downward along the glass wall and back across the bottom.
+    const swirl=.19 + .07*Math.sin(phase+p.x*.025);
+    p.vx += (-dy/radius)*swirl*dt + (Math.random()-.5)*.16*dt;
+    p.vy += (dx/radius)*swirl*dt + .055*dt;
+    const centralJet=Math.max(0,1-radius/(Math.min(rx,ry)*.82));
+    p.vy -= centralJet*.26*dt;
+    p.vx += Math.sin(phase*1.7+p.y*.035)*.045*dt;
+    p.vy += Math.cos(phase*1.3+p.x*.03)*.035*dt;
+    p.vx*=Math.pow(.996,dt);p.vy*=Math.pow(.996,dt);
+    p.x+=p.vx*dt;p.y+=p.vy*dt;
+    p.rot=(p.rot||0)+(p.vx+p.vy)*1.8*dt;
+    const ex=(p.x-cx)/rx,ey=(p.y-cy)/ry,edge=ex*ex+ey*ey;
+    if(edge>.91){
+     const nx=(p.x-cx)/(rx*rx),ny=(p.y-cy)/(ry*ry),mag=Math.hypot(nx,ny)||1;
+     const ux=nx/mag,uy=ny/mag,dot=p.vx*ux+p.vy*uy;
+     if(dot>0){p.vx-=1.72*dot*ux;p.vy-=1.72*dot*uy}
+     p.x-=ux*2.2;p.y-=uy*2.2;
     }
+    for(let j=i+1;j<active.length;j++){
+     const q=active[j],ax=q.x-p.x,ay=q.y-p.y,d=Math.hypot(ax,ay),min=p.r+q.r;
+     if(d>0&&d<min){
+      const nx=ax/d,ny=ay/d,rel=(p.vx-q.vx)*nx+(p.vy-q.vy)*ny;
+      if(rel>0){p.vx-=rel*nx*.9;p.vy-=rel*ny*.9;q.vx+=rel*nx*.9;q.vy+=rel*ny*.9}
+      const push=(min-d)*.52;p.x-=nx*push;p.y-=ny*push;q.x+=nx*push;q.y+=ny*push;
+     }
+    }
+    const speed=Math.hypot(p.vx,p.vy),max=4.8;
+    if(speed>max){p.vx=p.vx/speed*max;p.vy=p.vy/speed*max}
     p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';
+    p.el.style.transform=`translate(-50%,-50%) rotate(${p.rot}deg)`;
    }
    physicsFrame=requestAnimationFrame(step);
-  };physicsFrame=requestAnimationFrame(step);
+  };
+  physicsFrame=requestAnimationFrame(step);
  }
  function stopBallPhysics(){physicsRunning=false;cancelAnimationFrame(physicsFrame)}
  function renderDrawSlots(numbers, count){
