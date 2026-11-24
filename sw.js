@@ -1,4 +1,4 @@
-const CACHE_NAME = "lucky49-machine-v9";
+const CACHE_NAME = "lucky49-machine-v8";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE)).catch(()=>{}));
